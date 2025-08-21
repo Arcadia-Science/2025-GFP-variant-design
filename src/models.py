@@ -68,9 +68,7 @@ class Ensemble(nn.Module):
         self.modelC = VariantCNN(input_dim=5120, start_k_size=8)
         self.modelD = VariantCNN(input_dim=5120, start_k_size=10)
         self.modelE = VariantCNN(input_dim=5120, start_k_size=16)
-        self.modelF = VariantCNN(input_dim=5120, start_k_size=32)
-        self.modelG = VariantCNN(input_dim=5120, start_k_size=20)
-        self.classifier = nn.Linear(7, 1)
+        self.classifier = nn.Linear(5, 1)
         
     def forward(self, x):
         x1 = self.modelA(x)
@@ -78,8 +76,6 @@ class Ensemble(nn.Module):
         x3 = self.modelC(x)
         x4 = self.modelD(x)
         x5 = self.modelE(x)
-        x6 = self.modelE(x)
-        x7 = self.modelE(x)
-        x = torch.cat((x1, x2, x3, x4, x5, x6, x7), dim=1)
+        x = torch.cat((x1, x2, x3, x4, x5), dim=1)
         out = self.classifier(x)
         return out
