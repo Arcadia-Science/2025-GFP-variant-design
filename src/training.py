@@ -1,5 +1,4 @@
-from collections import defaultdict
-from tqdm import tqdm, trange
+from tqdm import trange
 
 import numpy as np
 from sklearn.metrics import r2_score
@@ -10,7 +9,7 @@ import torch.optim as optim
 
 def train_variant_cnn(model, train_loader, val_loader, config, device, updates=True):
     """
-    Main training function with all the bells and whistles
+    Main training function with comprehensive metrics tracking
     """
     optimizer = optim.AdamW(model.parameters(), 
                            lr=config.learning_rate,
@@ -23,38 +22,41 @@ def train_variant_cnn(model, train_loader, val_loader, config, device, updates=T
     
     criterion = nn.MSELoss()
     
+    # Training history tracking
+    train_losses = []
+    val_losses = []
+    val_r2_history = []
+    
     if updates:
         pbar = trange(config.epochs)
     else:
         pbar = range(config.epochs)
 
     for epoch in pbar:
+        # Training phase
         model.train()
-        train_losses = []
-        train_preds = []
-        train_labels = []
+        epoch_train_losses = []
         
         for embeddings, labels in train_loader:
             embeddings = embeddings.to(device)
             labels = labels.to(device)
             
-            # Forward pass
             optimizer.zero_grad()
             outputs = model(embeddings).flatten()
             loss = criterion(outputs, labels)
             
-            # Backward pass with gradient clipping
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), config.gradient_clip)
             optimizer.step()
             
-            # Store predictions and losses
-            train_losses.append(loss.item())
-            train_labels.extend(labels.cpu().numpy())
+            epoch_train_losses.append(loss.item())
+        
+        train_loss = np.mean(epoch_train_losses)
+        train_losses.append(train_loss)
         
         # Validation phase
         model.eval()
-        val_losses = []
+        epoch_val_losses = []
         val_preds = []
         val_labels = []
         
@@ -66,40 +68,34 @@ def train_variant_cnn(model, train_loader, val_loader, config, device, updates=T
                 outputs = model(embeddings).flatten()
                 loss = criterion(outputs, labels)
                 
-                val_losses.append(loss.item())
-                val_preds.extend(torch.sigmoid(outputs).cpu().numpy())
+                epoch_val_losses.append(loss.item())
+                val_preds.extend(outputs.cpu().numpy())
                 val_labels.extend(labels.cpu().numpy())
         
-        # Calculate metrics
-        train_loss = np.mean(train_losses)
-        val_loss = np.mean(val_losses)
+        val_loss = np.mean(epoch_val_losses)
+        val_losses.append(val_loss)
+        
+        # Calculate R²
+        val_r2 = r2_score(val_labels, val_preds)
+        val_r2_history.append(val_r2)
+        
         scheduler.step(val_loss)
         
         if updates:
             pbar.set_postfix({
                 'train_loss': f"{train_loss:.4f}",
-                'val_loss': f"{val_loss:.4f}"
+                'val_loss': f"{val_loss:.4f}",
+                'val_r2': f"{val_r2:.4f}"
             })
 
-    return model
+    return {
+        'model': model,
+        'train_losses': train_losses,
+        'val_losses': val_losses,
+        'val_r2_history': val_r2_history,
+        'final_r2': val_r2_history[-1]
+    }
 
-
-def train_up_to_dist(model, data_holder, dist):
-    dh_train = data_holder.for_cut_offs(max_distance=dist)
-    train_loader, val_loader = dh_train.train_val_split()
-    return train_variant_cnn(model, train_loader, val_loader, config, device, updates=False)
-
-
-def train_on_dist(model, data_holder, dist):
-    dh_train = data_holder.for_cut_offs(min_distance=dist, max_distance=dist)
-    train_loader, val_loader = dh_train.train_val_split()
-    return train_variant_cnn(model, train_loader, val_loader, config, device, updates=False)
-
-
-def train_on_per(model, data_holder, per):
-    dh_train = data_holder.for_per_of_data(per=per)
-    train_loader, val_loader = dh_train.train_val_split()
-    return train_variant_cnn(model, train_loader, val_loader, config, device, updates=False)
 
 
 def r2_score_for_model_and_loader(model, loader):

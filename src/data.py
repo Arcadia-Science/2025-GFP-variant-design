@@ -7,23 +7,6 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 
 
-def get_seq_and_score_data():
-    data = pd.read_csv(
-        "/datasets/seq_and_score/seq_and_score.csv"
-    )
-
-    num_mutations = []
-    for idx, row in data.iterrows():
-        if row.mutations is np.nan:
-            num_mutations.append(0)
-        else:
-            num_mutations.append(
-                len(row.mutations.split(":"))
-            )
-    data["num_mutations"] = num_mutations
-    return data
-
-
 class VariantDataset(Dataset):
     def __init__(self, embeddings, labels):
         """
@@ -31,8 +14,8 @@ class VariantDataset(Dataset):
             embeddings: ESM-2 embeddings (N x 5120)
             labels: Binary labels (N x 1)
         """
-        self.embeddings = torch.FloatTensor(embeddings)
-        self.labels = torch.FloatTensor(labels)
+        self.embeddings = torch.as_tensor(embeddings, dtype=torch.float32)
+        self.labels = torch.as_tensor(labels, dtype=torch.float32)
         
     def __len__(self):
         return len(self.embeddings)
@@ -80,7 +63,7 @@ class BaseDataHolder(ABC):
         )
     
     def train_val_split(self, batch_size=64, test_size=0.3, rand_state=42):
-        X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, test_size=0.30, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, test_size=test_size, random_state=rand_state)
         
         train_loader = DataLoader(
             VariantDataset(X_train, y_train),
@@ -101,27 +84,10 @@ class BaseDataHolder(ABC):
         return train_loader, val_loader
 
 
-class SmallEmbDataHolder(BaseDataHolder):
-    def _get_X_y(self):
-        return (
-            torch.tensor(np.array(self.df.embedding.tolist())),
-            torch.tensor(self.df.score.tolist())
-        )
-
-
-class CombinedDataHolder(BaseDataHolder):
-    def __init__(self, df):
-        super().__init__(df)
-        self.embeddings_indexes = [str(e) for e in range(5120)]
-
-    def _get_X_y(self):
-        return torch.tensor(self.df.features.tolist()), torch.tensor(self.df.score.tolist())
-
-
 class ESMDataHolder(BaseDataHolder):
     def __init__(self, df):
         self.embeddings_indexes = [str(e) for e in range(5120)]
         super().__init__(df)
 
     def _get_X_y(self):
-        return torch.tensor(self.df[self.embeddings_indexes].to_numpy()), torch.tensor(self.df.score.values)
+        return torch.from_numpy(self.df[self.embeddings_indexes].to_numpy()).float(), torch.from_numpy(self.df.score.values).float()
