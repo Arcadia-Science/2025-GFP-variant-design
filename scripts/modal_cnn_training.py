@@ -130,8 +130,6 @@ def train_single_run(run_id: int, seed: int, job_name: str):
     import torch
     import numpy as np
     from src import models, training, data
-    from sklearn.metrics import r2_score
-    from tqdm import trange
     
     # Set random seed for reproducibility
     torch.manual_seed(seed)
@@ -151,87 +149,25 @@ def train_single_run(run_id: int, seed: int, job_name: str):
     model = models.Ensemble().to(device)
     config = TrainingConfig()
     
-    # Training setup
-    optimizer = torch.optim.AdamW(
-        model.parameters(), 
-        lr=config.learning_rate,
-        weight_decay=config.weight_decay
+    # Use centralized training function
+    training_result = training.train_variant_cnn(
+        model=model,
+        train_loader=train_loader,
+        val_loader=val_loader,
+        config=config,
+        device=device,
+        updates=True
     )
-    
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
-    criterion = torch.nn.MSELoss()
-    
-    # Training loop with loss tracking
-    train_losses = []
-    val_losses = []
-    val_r2_history = []
-    
-    pbar = trange(config.epochs, desc=f"Run {run_id}")
-    
-    for _ in pbar:
-        # Training phase
-        model.train()
-        epoch_train_losses = []
-        
-        for embeddings, labels in train_loader:
-            embeddings = embeddings.to(device)
-            labels = labels.to(device)
-            
-            optimizer.zero_grad()
-            outputs = model(embeddings).flatten()
-            loss = criterion(outputs, labels)
-            
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), config.gradient_clip)
-            optimizer.step()
-            
-            epoch_train_losses.append(loss.item())
-        
-        train_loss = np.mean(epoch_train_losses)
-        train_losses.append(train_loss)
-        
-        # Validation phase
-        model.eval()
-        epoch_val_losses = []
-        val_preds = []
-        val_labels = []
-        
-        with torch.no_grad():
-            for embeddings, labels in val_loader:
-                embeddings = embeddings.to(device)
-                labels = labels.to(device)
-                
-                outputs = model(embeddings).flatten()
-                loss = criterion(outputs, labels)
-                
-                epoch_val_losses.append(loss.item())
-                val_preds.extend(outputs.cpu().numpy())
-                val_labels.extend(labels.cpu().numpy())
-        
-        val_loss = np.mean(epoch_val_losses)
-        val_losses.append(val_loss)
-        
-        # Calculate R²
-        val_r2 = r2_score(val_labels, val_preds)
-        val_r2_history.append(val_r2)
-        
-        scheduler.step(val_loss)
-        
-        pbar.set_postfix({
-            'train_loss': f"{train_loss:.4f}",
-            'val_loss': f"{val_loss:.4f}",
-            'val_r2': f"{val_r2:.4f}"
-        })
     
     # Create results object
     results = TrainingResults(
         run_id=run_id,
         seed=seed,
-        final_r2=val_r2_history[-1],
-        train_losses=train_losses,
-        val_losses=val_losses,
-        val_r2_history=val_r2_history,
-        model_state_dict=model.cpu().state_dict()
+        final_r2=training_result['final_r2'],
+        train_losses=training_result['train_losses'],
+        val_losses=training_result['val_losses'],
+        val_r2_history=training_result['val_r2_history'],
+        model_state_dict=training_result['model'].cpu().state_dict()
     )
     
     # Save results

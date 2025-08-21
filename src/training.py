@@ -32,7 +32,7 @@ def train_variant_cnn(model, train_loader, val_loader, config, device, updates=T
     else:
         pbar = range(config.epochs)
 
-    for epoch in pbar:
+    for _ in pbar:
         # Training phase
         model.train()
         epoch_train_losses = []
