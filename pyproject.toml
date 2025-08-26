@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gfp-variant-design"
+version = "0.1.0"
+description = "CNN ensemble model for GFP variant design and activity prediction"
+authors = [
+    {name = "Erin McGeever", email = "erin.mcgeever@arcadiascience.com"}
+]
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "torch>=2.0.0",
+    "numpy>=1.21.0",
+    "pandas>=1.3.0",
+    "scikit-learn>=1.0.0",
+    "tqdm>=4.60.0",
+    "matplotlib>=3.5.0",
+    "seaborn>=0.11.0",
+    "fair-esm>=2.0.0",
+    "fairscale>=0.4.0",
+    "ipykernel>=6.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Arcadia-Science/2025-GFP-variant-design"
+Repository = "https://github.com/Arcadia-Science/2025-GFP-variant-design"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.setuptools.package-dir]
+"" = "."
