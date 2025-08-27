@@ -5,13 +5,21 @@ import torch.nn.functional as F
 
 class VariantCNN(nn.Module):
     def __init__(self, input_dim=5120, num_channels=32, output_dim=1, start_k_size=5):
+        """
+        A Convolutional Neural Network (CNN) model for predicting variant effects from ESM-2 embeddings.
+        Args:
+            input_dim (int): Dimension of the input features (default: 5120 for ESM-2 15b parameter embeddings).
+            num_channels (int): Number of channels to reshape the input features into (default: 32).
+            output_dim (int): Dimension of the output (default: 1 for regression).
+            start_k_size (int): Kernel size for the first convolutional layer (default: 5).
+        """
         super(VariantCNN, self).__init__()
-        
-        # Reshape features into a format suitable for CNN
-        # We'll treat the features as a 1D sequence with 32 channels
-        #self.num_channels = 32
-        
         self.num_channels = num_channels
+
+        # Reshape features into a format suitable for CNN
+        # Convert flat ESM-2 embeddings (5120-dim) into a 2D tensor (32 channels × 160 sequence length)
+        # This allows the CNN to capture local patterns and spatial relationships within the embedding space
+        # 32 channels provides a good balance between preserving information and computational efficiency
         self.seq_length = input_dim // self.num_channels  # 5120 // 32 = 160
         
         # CNN layers
@@ -35,6 +43,8 @@ class VariantCNN(nn.Module):
 
     def forward(self, x):
         # Reshape input from (batch_size, 5120) to (batch_size, 32, 160)
+        # This converts the flat ESM-2 embeddings into the multi-channel format expected by Conv1d layers
+        # Each of the 32 channels contains a 160-length sequence that the CNN can process spatially
         x = x.view(-1, self.num_channels, self.seq_length)
         
         # CNN blocks
@@ -63,8 +73,9 @@ class VariantCNN(nn.Module):
 class Ensemble(nn.Module):   
     def __init__(self):
         super().__init__()
-        self.modelA = VariantCNN(input_dim=5120)
-        self.modelB = VariantCNN(input_dim=5120)
+        # The first two CNNs are the same size to place more focus locally.
+        self.modelA = VariantCNN(input_dim=5120, start_k_size=5)
+        self.modelB = VariantCNN(input_dim=5120, start_k_size=5)
         self.modelC = VariantCNN(input_dim=5120, start_k_size=8)
         self.modelD = VariantCNN(input_dim=5120, start_k_size=10)
         self.modelE = VariantCNN(input_dim=5120, start_k_size=16)

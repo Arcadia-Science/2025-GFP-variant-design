@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-import numpy as np
-import pandas as pd
 from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -40,7 +38,7 @@ class BaseDataHolder(ABC):
 
     def for_per_of_data(self, per):
         return self.__class__(
-            self.df.sample(n=int(per*self.df.shape[0]))
+            self.df.sample(n=int(per*self.df.shape[0]), random_state=0)
         )
         
     def for_cut_offs(self, min_distance=None, max_distance=None):
