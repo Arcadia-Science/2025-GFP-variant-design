@@ -32,7 +32,8 @@ def main():
     args.output_dir.mkdir(exist_ok=True, parents=True)
 
     # The following if from esm: https://github.com/facebookresearch/esm/blob/main/examples/esm2_infer_fairscale_fsdp_cpu_offloading.py
-    url = "tcp://localhost:23456"
+    port = 23456  # can be any free port
+    url = f"tcp://localhost:{port}"
     torch.distributed.init_process_group(backend="nccl", init_method=url, world_size=1, rank=0)
 
     model_name = "esm2_t48_15B_UR50D"
