@@ -1,5 +1,6 @@
 import torch
 from esm import FastaBatchedDataset
+from tqdm import tqdm
 
 
 def data_loader_for_fasta(fasta, batch_size, alphabet):
@@ -32,12 +33,7 @@ def generate_embeddings(
 
     model.eval()
     with torch.no_grad():
-        for batch_idx, (labels, strs, toks) in enumerate(data_loader):
-            current = batch_idx + 1
-            seqs_in_batch = toks.size(0)
-            print(
-                f"Processing {current} of {num_batches} batches ({seqs_in_batch} sequences)"
-            )
+        for batch_idx, (labels, strs, toks) in enumerate(tqdm(data_loader, desc="Processing batches")):
             toks = toks.to(device="cuda", non_blocking=True)
 
             out = model(toks, repr_layers=repr_layers, return_contacts=False)
