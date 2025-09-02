@@ -37,13 +37,7 @@ Creates visualizations from the results.
 ## Scripts
 
 ### create_embeddings_from_seq_score.py
-Converts `seq_and_score.csv` to embeddings file:
-1. Creates FASTA from sequences
-2. Generates ESM-2 embeddings 
-3. Adds metadata columns
-
-### add_missing_columns.py
-Adds missing columns to existing embeddings file from `seq_and_score.csv`.
+Generates embeddings and metadata from `seq_and_score.csv` with progress tracking.
 
 ## Usage
 
