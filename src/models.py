@@ -21,23 +21,29 @@ class VariantCNN(nn.Module):
         # This allows the CNN to capture local patterns and spatial relationships within the embedding space
         # 32 channels provides a good balance between preserving information and computational efficiency
         self.seq_length = input_dim // self.num_channels  # 5120 // 32 = 160
-        
+
         # CNN layers
-        self.conv1 = nn.Conv1d(self.num_channels, 64, kernel_size=start_k_size, stride=1, padding=int((start_k_size-1)/2))
+        self.conv1 = nn.Conv1d(
+            self.num_channels,
+            64,
+            kernel_size=start_k_size,
+            stride=1,
+            padding=int((start_k_size - 1) / 2),
+        )
         self.bn1 = nn.BatchNorm1d(64)
         self.conv2 = nn.Conv1d(64, 128, kernel_size=5, stride=1, padding=2)
         self.bn2 = nn.BatchNorm1d(128)
         self.conv3 = nn.Conv1d(128, 256, kernel_size=3, stride=1, padding=1)
         self.bn3 = nn.BatchNorm1d(256)
-        
+
         # Global average pooling
         self.gap = nn.AdaptiveAvgPool1d(1)
-        
+
         # Fully connected layers
         self.fc1 = nn.Linear(256, 128)
         self.fc2 = nn.Linear(128, 64)
         self.fc3 = nn.Linear(64, output_dim)
-        
+
         # Dropout for regularization
         self.dropout = nn.Dropout(0.1)
 
@@ -46,31 +52,31 @@ class VariantCNN(nn.Module):
         # This converts the flat ESM-2 embeddings into the multi-channel format expected by Conv1d layers
         # Each of the 32 channels contains a 160-length sequence that the CNN can process spatially
         x = x.view(-1, self.num_channels, self.seq_length)
-        
+
         # CNN blocks
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.max_pool1d(x, 2)
-        
+
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.max_pool1d(x, 2)
-        
+
         x = F.relu(self.bn3(self.conv3(x)))
-        
+
         # Global average pooling
         x = self.gap(x)
         x = x.view(x.size(0), -1)
-        
+
         # Fully connected layers
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
         x = F.relu(self.fc2(x))
         x = self.dropout(x)
         x = self.fc3(x)
-        
+
         return x
 
 
-class Ensemble(nn.Module):   
+class Ensemble(nn.Module):
     def __init__(self):
         super().__init__()
         # The first two CNNs are the same size to place more focus locally.
@@ -80,7 +86,7 @@ class Ensemble(nn.Module):
         self.modelD = VariantCNN(input_dim=5120, start_k_size=10)
         self.modelE = VariantCNN(input_dim=5120, start_k_size=16)
         self.classifier = nn.Linear(5, 1)
-        
+
     def forward(self, x):
         x1 = self.modelA(x)
         x2 = self.modelB(x)
