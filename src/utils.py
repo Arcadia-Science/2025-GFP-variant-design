@@ -22,7 +22,6 @@ def generate_embeddings(
 ):
     alphabet = model.alphabet
     data_loader = data_loader_for_fasta(fasta_path, toks_per_batch, alphabet)
-    num_batches = len(data_loader.batch_sampler)
 
     assert all(
         -(model.num_layers + 1) <= i <= model.num_layers for i in range(repr_layers)
