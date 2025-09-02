@@ -11,7 +11,10 @@ from utils import generate_embeddings
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--fasta", type=Path, help="Path to the fasta file to create embeddings for.", required=True
+        "--fasta",
+        type=Path,
+        help="Path to the fasta file to create embeddings for.",
+        required=True,
     )
     parser.add_argument(
         "--output_dir",
@@ -19,11 +22,7 @@ def parse_args():
         required=True,
         help="Output directory path to use for embeddings.",
     )
-    parser.add_argument(
-        "--truncation_seq_length",
-        type=int,
-        default=1022
-    )
+    parser.add_argument("--truncation_seq_length", type=int, default=1022)
     return parser.parse_args()
 
 
@@ -34,10 +33,14 @@ def main():
     # The following if from esm: https://github.com/facebookresearch/esm/blob/main/examples/esm2_infer_fairscale_fsdp_cpu_offloading.py
     port = 23456  # can be any free port
     url = f"tcp://localhost:{port}"
-    torch.distributed.init_process_group(backend="nccl", init_method=url, world_size=1, rank=0)
+    torch.distributed.init_process_group(
+        backend="nccl", init_method=url, world_size=1, rank=0
+    )
 
     model_name = "esm2_t48_15B_UR50D"
-    model_data, regression_data = esm.pretrained._download_model_and_regression_data(model_name)
+    model_data, regression_data = esm.pretrained._download_model_and_regression_data(
+        model_name
+    )
 
     fsdp_params = dict(
         mixed_precision=True,
@@ -66,7 +69,7 @@ def main():
         repr_layers=48,
         model=model,
         output_dir=args.output_dir,
-        truncation_seq_length=args.truncation_seq_length
+        truncation_seq_length=args.truncation_seq_length,
     )
 
 
