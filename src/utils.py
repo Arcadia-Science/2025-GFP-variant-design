@@ -32,7 +32,9 @@ def generate_embeddings(
 
     model.eval()
     with torch.no_grad():
-        for batch_idx, (labels, strs, toks) in enumerate(tqdm(data_loader, desc="Processing batches")):
+        for batch_idx, (labels, strs, toks) in enumerate(
+            tqdm(data_loader, desc="Processing batches")
+        ):
             toks = toks.to(device="cuda", non_blocking=True)
 
             out = model(toks, repr_layers=repr_layers, return_contacts=False)
