@@ -29,6 +29,7 @@ dependencies = [
     "fair-esm==2.0.0",
     "fairscale==0.4.13",
     "ipykernel==6.29.5",
+    "arcadia-pycolor==0.6.4"
 ]
 
 [project.urls]
