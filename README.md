@@ -38,7 +38,7 @@ Creates visualizations from the results.
 Extracts fluorescence readings from raw plate reader data found in the `experimental_data` directory, analyzes the data, and creates visualizations for the protein variants we analyzed in the lab.
 
 ### 05_visualize_fluorescence.ipynb
-Visualizes dual-channel fluorescence microscopy images of two GFP variants, representing fluorescence characteristics from the broader dataset.
+Generates figures showing dual-channel microscopy images of *E. coli* expressing GFP variants, providing a representative view of fluorescence properties within the broader dataset.
 
 ## Scripts
 
