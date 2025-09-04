@@ -35,7 +35,10 @@ Generates protein sequence variants and predicts their activities using the trai
 Creates visualizations from the results.
 
 ### 04_analyze_experimental_data.ipynb
-Extracts fluorescence readings from raw plate reader data found in the `experimental_data` directory, analyzes the data, and creates visualizations for the protein variants we analyzed in the lab. 
+Extracts fluorescence readings from raw plate reader data found in the `experimental_data` directory, analyzes the data, and creates visualizations for the protein variants we analyzed in the lab.
+
+### 05_visualize_fluorescence.ipynb
+Visualizes dual-channel fluorescence microscopy images of two GFP variants, representing fluorescence characteristics from the broader dataset.
 
 ## Scripts
 
