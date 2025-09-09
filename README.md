@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/1038291139.svg)](https://doi.org/10.5281/zenodo.17088631)
+
 # GFP Variant Design
 
 CNN ensemble model for protein activity prediction using ESM-2 embeddings.
