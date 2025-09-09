@@ -22,6 +22,7 @@ cd 2025-GFP-variant-design
 ```bash
 pip install -e .
 ```
+3. Download the ESM-2 embeddings from https://zenodo.org/records/17088257, and place the file in the `data` directory.
 
 ## Notebooks
 
