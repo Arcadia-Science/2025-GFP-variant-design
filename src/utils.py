@@ -30,12 +30,14 @@ def generate_embeddings(
         (i + model.num_layers + 1) % (model.num_layers + 1) for i in range(repr_layers)
     ]
 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
     model.eval()
     with torch.no_grad():
         for batch_idx, (labels, strs, toks) in enumerate(
             tqdm(data_loader, desc="Processing batches")
         ):
-            toks = toks.to(device="cuda", non_blocking=True)
+            toks = toks.to(device=device, non_blocking=True)
 
             out = model(toks, repr_layers=repr_layers, return_contacts=False)
 
