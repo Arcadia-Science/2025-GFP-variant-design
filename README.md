@@ -24,7 +24,17 @@ cd 2025-GFP-variant-design
 ```bash
 pip install -e .
 ```
-3. Download the ESM-2 embeddings from https://zenodo.org/records/17088257, and place the file in the `data` directory.
+3. Download the ESM-2 embeddings file `esm2_15b_embeddings_and_meta.csv` from https://zenodo.org/records/17088257, and place it in the `data` directory (i.e. `data/esm2_15b_embeddings_and_meta.csv`). This is the training data loaded by `01_train_model.ipynb` and `03_create_figures.ipynb`.
+
+### GPU requirements
+
+| Notebook | GPU required? |
+| --- | --- |
+| `01_train_model.ipynb` | No (CPU works, GPU is faster) |
+| `02_generate_sequences.ipynb` | Yes — CUDA GPU. It runs `src/embeddings.py`, which generates ESM-2 15B embeddings and uses `torch.distributed` with the `nccl` backend. There is no CPU fallback. |
+| `03_create_figures.ipynb` | No (CPU works, GPU is faster) |
+| `04_analyze_experimental_data.ipynb` | No |
+| `05_visualize_fluorescence.ipynb` | No |
 
 ## Notebooks
 
@@ -56,7 +66,7 @@ Run notebooks in order: `01_train_model.ipynb` → `02_generate_sequences.ipynb`
 
 Converts `seq_and_score.csv` to full embeddings dataset with ESM-2 embeddings and metadata columns.
 
-Some systems need certificates for embedding generation:
+Some Linux systems need CA certificates for embedding generation. This is optional and only applies on Linux with root access (it will fail on macOS/Windows). The corresponding cell in `02_generate_sequences.ipynb` is commented out by default; uncomment it only if you hit certificate errors:
 
 ```bash
 apt update && apt install -y ca-certificates && update-ca-certificates

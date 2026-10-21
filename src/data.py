@@ -53,16 +53,18 @@ class BaseDataHolder(ABC):
             ]
         )
 
-    def loader_all_data(self, batch_size=64):
+    def loader_all_data(self, batch_size=64, num_workers=0):
         return DataLoader(
             VariantDataset(self.X, self.y),
             batch_size=batch_size,
             shuffle=True,
-            num_workers=4,
+            num_workers=num_workers,
             pin_memory=True,
         )
 
-    def train_val_split(self, batch_size=64, test_size=0.3, rand_state=42):
+    def train_val_split(
+        self, batch_size=64, test_size=0.3, rand_state=42, num_workers=0
+    ):
         X_train, X_test, y_train, y_test = train_test_split(
             self.X, self.y, test_size=test_size, random_state=rand_state
         )
@@ -71,7 +73,7 @@ class BaseDataHolder(ABC):
             VariantDataset(X_train, y_train),
             batch_size=batch_size,
             shuffle=True,
-            num_workers=4,
+            num_workers=num_workers,
             pin_memory=True,
         )
 
@@ -79,7 +81,7 @@ class BaseDataHolder(ABC):
             VariantDataset(X_test, y_test),
             batch_size=batch_size,
             shuffle=False,
-            num_workers=4,
+            num_workers=num_workers,
             pin_memory=True,
         )
 

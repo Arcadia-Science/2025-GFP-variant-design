@@ -96,14 +96,17 @@ def train_variant_cnn(model, train_loader, val_loader, config, device, updates=T
     }
 
 
-def r2_score_for_model_and_loader(model, loader):
+def r2_score_for_model_and_loader(model, loader, device=None):
+    if device is None:
+        device = next(model.parameters()).device
+
     model.eval()
 
     predictions = []
     actuals = []
     with torch.no_grad():
         for xbatch, ybatch in loader:
-            predictions.append(model(xbatch.to("cuda")).flatten())
+            predictions.append(model(xbatch.to(device)).flatten())
             actuals.append(ybatch)
 
     predictions = torch.concat(predictions).cpu().detach().numpy()
